@@ -2,13 +2,13 @@ import 'package:prac8/features/transactions/data/transaction_model.dart';
 import 'package:prac8/core/constants/categories.dart';
 
 class TransactionRepository {
-  static final List<Transaction> transactions = [];
+  final List<Transaction> transactions = [];
 
-  static void addTransaction(Transaction transaction) {
+  void addTransaction(Transaction transaction) {
     transactions.add(transaction);
   }
 
-  static void updateTransaction(String id, Transaction updatedTransaction) {
+  void updateTransaction(String id, Transaction updatedTransaction) {
     final index = transactions.indexWhere((transaction) => transaction.id == id);
     if (index != -1) {
       transactions[index] = Transaction(
@@ -23,11 +23,11 @@ class TransactionRepository {
     }
   }
 
-  static void deleteTransaction(String id) {
+  void deleteTransaction(String id) {
     transactions.removeWhere((transaction) => transaction.id == id);
   }
 
-  static void toggleTransactionType(String id) {
+  void toggleTransactionType(String id) {
     final index = transactions.indexWhere((transaction) => transaction.id == id);
     if (index != -1) {
       transactions[index] = Transaction(
@@ -42,19 +42,19 @@ class TransactionRepository {
     }
   }
 
-  static double getTotalIncome() {
+  double getTotalIncome() {
     return transactions
         .where((transaction) => transaction.isIncome)
         .fold(0.0, (sum, transaction) => sum + transaction.amount);
   }
 
-  static double getTotalExpenses() {
+  double getTotalExpenses() {
     return transactions
         .where((transaction) => transaction.isExpense)
         .fold(0.0, (sum, transaction) => sum + transaction.amount);
   }
 
-  static double getBalance() {
+  double getBalance() {
     return getTotalIncome() - getTotalExpenses();
   }
 }
