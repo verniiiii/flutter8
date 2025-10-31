@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../data/transaction_model.dart';
 import '../../../../core/constants/categories.dart';
 import '../../../../core/transaction_inherited.dart';
+import '../../../../features/transactions/data/transaction_repository.dart';
+import 'package:get_it/get_it.dart';
 
 class TransactionFormScreen extends StatefulWidget {
   final void Function(Transaction) onSave;
@@ -40,7 +42,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       category: _selectedCategory,
     );
 
-    TransactionInherited.of(context).repository.addTransaction(newTransaction);
+    GetIt.I<TransactionRepository>().addTransaction(newTransaction);
     widget.onSave(newTransaction);
 
     Navigator.pop(context);

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../data/transaction_model.dart';
 import '../../../../core/constants/categories.dart';
 import '../../../../core/transaction_inherited.dart';
+import '../../../../features/transactions/data/transaction_repository.dart';
+import 'package:get_it/get_it.dart';
 
 class EditTransactionScreen extends StatefulWidget {
   final Transaction transaction;
@@ -53,7 +55,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
       category: _selectedCategory,
     );
 
-    TransactionInherited.of(context).repository.updateTransaction(
+    GetIt.I<TransactionRepository>().updateTransaction(
       widget.transaction.id,
       updatedTransaction,
     );

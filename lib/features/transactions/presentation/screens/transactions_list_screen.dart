@@ -8,6 +8,9 @@ import 'transaction_form_screen.dart';
 import 'edit_transaction_screen.dart';
 import 'statistics_screen.dart';
 import '../../../../features/profile/presentation/screens/profile_screen.dart';
+import '../../../../features/transactions/data/transaction_repository.dart';
+import 'package:get_it/get_it.dart';
+
 
 class TransactionsListScreen extends StatefulWidget {
   const TransactionsListScreen({super.key});
@@ -26,14 +29,26 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
 
   void _toggleTransaction(String id) {
     setState(() {
-      TransactionInherited.of(context).repository.toggleTransactionType(id);
+      GetIt.I<TransactionRepository>().toggleTransactionType(id);
     });
   }
 
   void _deleteTransaction(String id) {
     setState(() {
-      TransactionInherited.of(context).repository.deleteTransaction(id);
+      GetIt.I<TransactionRepository>().deleteTransaction(id);
     });
+  }
+
+  double get _totalIncome {
+    return GetIt.I<TransactionRepository>().getTotalIncome();
+  }
+
+  double get _totalExpenses {
+    return GetIt.I<TransactionRepository>().getTotalExpenses();
+  }
+
+  double get _balance {
+    return GetIt.I<TransactionRepository>().getBalance();
   }
 
   void _editTransaction(Transaction transaction) {
@@ -52,20 +67,8 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     context.push('/profile');
   }
 
-  double get _totalIncome {
-    return TransactionInherited.of(context).repository.getTotalIncome();
-  }
-
-  double get _totalExpenses {
-    return TransactionInherited.of(context).repository.getTotalExpenses();
-  }
-
-  double get _balance {
-    return TransactionInherited.of(context).repository.getBalance();
-  }
-
   List<Transaction> get _filteredTransactions {
-    final allTransactions = TransactionInherited.of(context).repository.transactions;
+    final allTransactions = GetIt.I<TransactionRepository>().transactions;
 
     return allTransactions.where((transaction) {
       final matchesQuery = transaction.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||

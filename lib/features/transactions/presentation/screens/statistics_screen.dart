@@ -4,13 +4,15 @@ import 'package:collection/collection.dart';
 import '../../data/transaction_model.dart';
 import '../../../../core/constants/categories.dart';
 import '../../../../core/transaction_inherited.dart';
+import '../../../../features/transactions/data/transaction_repository.dart';
+import 'package:get_it/get_it.dart';
 
 class StatisticsScreen extends StatelessWidget {
   const StatisticsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final transactions = TransactionInherited.of(context).repository.transactions;
+    final transactions = GetIt.I<TransactionRepository>().transactions;
 
     Map<String, double> _getCategoryStats(TransactionType type) {
       final filtered = transactions.where((t) => t.type == type).toList();
