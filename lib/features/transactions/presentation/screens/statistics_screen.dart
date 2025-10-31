@@ -2,35 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
 import '../../data/transaction_model.dart';
-import '../../../../core/constants/categories.dart'; // Правильный импорт
-
+import '../../../../core/constants/categories.dart';
+import '../../../../core/transaction_inherited.dart';
 
 class StatisticsScreen extends StatelessWidget {
   const StatisticsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // В реальном приложении здесь бы получали транзакции из состояния
-    final transactions = [
-      Transaction(
-        id: '1',
-        title: 'Зарплата',
-        description: '',
-        amount: 50000,
-        createdAt: DateTime.now(),
-        type: TransactionType.income,
-        category: 'Зарплата',
-      ),
-      Transaction(
-        id: '2',
-        title: 'Продукты',
-        description: '',
-        amount: 15000,
-        createdAt: DateTime.now(),
-        type: TransactionType.expense,
-        category: 'Продукты',
-      ),
-    ];
+    final transactions = TransactionInherited.of(context).repository.transactions;
 
     Map<String, double> _getCategoryStats(TransactionType type) {
       final filtered = transactions.where((t) => t.type == type).toList();
@@ -59,7 +39,6 @@ class StatisticsScreen extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(), // ВЕРТИКАЛЬНЫЙ ВОЗВРАТ
-
         ),
       ),
       body: Padding(

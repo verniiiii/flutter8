@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/transaction_model.dart';
-import '../../../../core/constants/categories.dart'; // Правильный импорт
+import '../../../../core/constants/categories.dart';
+import '../../../../core/transaction_inherited.dart';
 
 class EditTransactionScreen extends StatefulWidget {
   final Transaction transaction;
@@ -30,7 +31,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
     _titleController.text = widget.transaction.title;
     _descriptionController.text = widget.transaction.description;
     _amountController.text = widget.transaction.amount.toStringAsFixed(2);
-    _type = widget.transaction.type as TransactionType;
+    _type = widget.transaction.type;
     _selectedCategory = widget.transaction.category;
   }
 
@@ -50,6 +51,11 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
       amount: amount,
       type: _type,
       category: _selectedCategory,
+    );
+
+    TransactionInherited.of(context).repository.updateTransaction(
+      widget.transaction.id,
+      updatedTransaction,
     );
 
     widget.onUpdate(updatedTransaction);

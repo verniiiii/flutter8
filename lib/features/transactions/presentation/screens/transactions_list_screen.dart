@@ -3,11 +3,11 @@ import 'package:go_router/go_router.dart';
 import '../widgets/transaction_list.dart';
 import '../../data/transaction_model.dart';
 import '../../../../core/constants/categories.dart';
+import '../../../../core/transaction_inherited.dart';
 import 'transaction_form_screen.dart';
 import 'edit_transaction_screen.dart';
 import 'statistics_screen.dart';
 import '../../../../features/profile/presentation/screens/profile_screen.dart';
-
 
 class TransactionsListScreen extends StatefulWidget {
   const TransactionsListScreen({super.key});
@@ -17,35 +17,8 @@ class TransactionsListScreen extends StatefulWidget {
 }
 
 class _TransactionsListScreenState extends State<TransactionsListScreen> {
-  final List<Transaction> _transactions = [
-    Transaction(
-      id: '1',
-      title: 'Зарплата',
-      description: 'Зарплата за январь',
-      amount: 50000,
-      createdAt: DateTime.now(),
-      type: TransactionType.income,
-      category: 'Зарплата',
-    ),
-    Transaction(
-      id: '2',
-      title: 'Продукты',
-      description: 'Покупки в супермаркете',
-      amount: 3500,
-      createdAt: DateTime.now().subtract(const Duration(days: 1)),
-      type: TransactionType.expense,
-      category: 'Продукты',
-    ),
-    Transaction(
-      id: '3',
-      title: 'новое',
-      description: '',
-      amount: 111,
-      createdAt: DateTime.now(),
-      type: TransactionType.expense,
-      category: 'Продукты',
-    ),
-  ];
+  String _selectedCategory = 'Все категории';
+  String _searchQuery = '';
 
   void _addTransaction() {
     context.push('/add');
@@ -53,35 +26,24 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
 
   void _toggleTransaction(String id) {
     setState(() {
-      final index = _transactions.indexWhere((t) => t.id == id);
-      if (index != -1) {
-        final transaction = _transactions[index];
-        _transactions[index] = transaction.copyWith(
-          type: transaction.isExpense ? TransactionType.income : TransactionType.expense,
-        );
-      }
+      TransactionInherited.of(context).repository.toggleTransactionType(id);
     });
   }
 
   void _deleteTransaction(String id) {
     setState(() {
-      _transactions.removeWhere((t) => t.id == id);
+      TransactionInherited.of(context).repository.deleteTransaction(id);
     });
   }
 
-  // Код из transactions_list_screen.dart
   void _editTransaction(Transaction transaction) {
     context.push('/edit/${transaction.id}', extra: transaction);
   }
 
   void _showTransactionDetails(String transactionId) {
-    // ГОРИЗОНТАЛЬНАЯ НАВИГАЦИЯ - маршрутизированная (замена текущего экрана)
     context.pushReplacement('/details?id=$transactionId');
-
   }
 
-
-  // Код из transactions_list_screen.dart
   void _showStatistics() {
     context.push('/statistics');
   }
@@ -90,9 +52,36 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     context.push('/profile');
   }
 
+  double get _totalIncome {
+    return TransactionInherited.of(context).repository.getTotalIncome();
+  }
+
+  double get _totalExpenses {
+    return TransactionInherited.of(context).repository.getTotalExpenses();
+  }
+
+  double get _balance {
+    return TransactionInherited.of(context).repository.getBalance();
+  }
+
+  List<Transaction> get _filteredTransactions {
+    final allTransactions = TransactionInherited.of(context).repository.transactions;
+
+    return allTransactions.where((transaction) {
+      final matchesQuery = transaction.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          transaction.description.toLowerCase().contains(_searchQuery.toLowerCase());
+
+      final matchesCategory = _selectedCategory == 'Все категории' ||
+          transaction.category == _selectedCategory;
+
+      return matchesQuery && matchesCategory;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final allCategories = ['Все категории', ...TransactionCategories.incomeCategories, ...TransactionCategories.expenseCategories];
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Финансовый Трекер'),
@@ -109,12 +98,60 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
           ),
         ],
       ),
-      body: TransactionList(
-        transactions: _transactions,
-        onToggle: _toggleTransaction,
-        onDelete: _deleteTransaction,
-        onEdit: _editTransaction,
-        onDetails: _showTransactionDetails,
+      body: Column(
+        children: [
+          // Поиск и фильтрация
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Поиск транзакций',
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  value: _selectedCategory,
+                  decoration: const InputDecoration(
+                    labelText: 'Категория',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: allCategories.map((String category) {
+                    return DropdownMenuItem<String>(
+                      value: category,
+                      child: Text(category),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedCategory = newValue!;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TransactionList(
+              transactions: _filteredTransactions,
+              onToggle: _toggleTransaction,
+              onDelete: _deleteTransaction,
+              onEdit: _editTransaction,
+              onDetails: _showTransactionDetails,
+              totalIncome: _totalIncome,
+              totalExpenses: _totalExpenses,
+              balance: _balance,
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addTransaction,
